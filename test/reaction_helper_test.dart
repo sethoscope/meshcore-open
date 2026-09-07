@@ -373,7 +373,7 @@ void main() {
         final senderName = 'entropy 📓';
         final hash = 'b3je6qf7';
         final info = ReactionHelper.parseReactionMC1(
-          '$emoji@[$senderName]\n$hash',
+          '@[$senderName]$emoji\n$hash',
         );
         expect(info, isNotNull);
         expect(info!.targetHash, equals('$hash:$senderName'));
@@ -381,10 +381,10 @@ void main() {
 
         List<String> messages = [
           '🥳\n01234567',
-          '🥳@[entropy]\n01234567',
+          '@[entropy]🥳\n01234567',
           '\u{1f44c}\u{1f3ff}\n01234567',
-          '\u{1f44c}\u{1f3ff}@[entropy]\n01234567',
-          '🧑‍🧑‍🧒@[entropy]\n01234567', // long composite emoji - 21 bytes
+          '@[entropy]\u{1f44c}\u{1f3ff}\n01234567',
+          '@[entropy]🧑‍🧑‍🧒\n01234567', // long composite emoji - 21 bytes
           '🧑‍🧑‍🧒‍🧒\n01234567', // long composite emoji - 25 bytes
         ];
         for (String txt in messages) {
@@ -408,7 +408,62 @@ void main() {
         }
       });
 
+      test('parse MeshCoreOne reaction - Legacy format', () {
+        final emoji = '🥳';
+        final senderName = 'entropy 📓';
+        final hash = 'b3je6qf7';
+        final info = ReactionHelper.parseReactionMC1Legacy(
+          '$emoji@[$senderName]\n$hash',
+        );
+        expect(info, isNotNull);
+        expect(info!.targetHash, equals('$hash:$senderName'));
+        expect(info.emoji, equals(emoji));
+
+        List<String> messages = [
+          '🥳\n01234567',
+          '🥳@[entropy]\n01234567',
+          '\u{1f44c}\u{1f3ff}\n01234567',
+          '\u{1f44c}\u{1f3ff}@[entropy]\n01234567',
+          '🧑‍🧑‍🧒@[entropy]\n01234567', // long composite emoji - 21 bytes
+          '🧑‍🧑‍🧒‍🧒\n01234567', // long composite emoji - 25 bytes
+        ];
+        for (String txt in messages) {
+          final info = ReactionHelper.parseReactionMC1Legacy(txt);
+          expect(info, isNotNull, reason: "$txt did not parse");
+        }
+      });
+
+      test(
+        'parse MeshCoreOne reaction - Legacy format - avoid false positives',
+        () {
+          List<String> messages = [
+            'test\nabcdefgh',
+            '🥳\nhashistoolong',
+            '🥳\nshort',
+            '🥳🥳\n01234567', // two emojis not composed into one grapheme
+            'X\n01234567',
+            '🥳\nabcuuxyz', // u is not valid as we don't support checksums
+          ];
+          for (String txt in messages) {
+            final info = ReactionHelper.parseReactionMC1Legacy(txt);
+            expect(info, isNull, reason: "$txt should not have parsed");
+          }
+        },
+      );
+
       test('parse MeshCoreOne reaction - main entry', () {
+        final emoji = '🥳';
+        final senderName = 'entropy 📓';
+        final hash = 'b3je6qf7';
+        final info = ReactionHelper.parseReaction(
+          '@[$senderName]$emoji\n$hash',
+        );
+        expect(info, isNotNull);
+        expect(info!.targetHash, equals('$hash:$senderName'));
+        expect(info.emoji, equals(emoji));
+      });
+
+      test('parse MeshCoreOne reaction Legacy format - main entry', () {
         final emoji = '🥳';
         final senderName = 'entropy 📓';
         final hash = 'b3je6qf7';

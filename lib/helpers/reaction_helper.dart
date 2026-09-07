@@ -161,7 +161,9 @@ class ReactionHelper {
   }
 
   static ReactionInfo? parseReaction(String text) {
-    return parseReactionOurs(text) ?? parseReactionMC1(text);
+    return parseReactionOurs(text) ??
+        parseReactionMC1(text) ??
+        parseReactionMC1Legacy(text);
   }
 
   static bool _looksLikeEmoji(String emoji) {
@@ -186,6 +188,26 @@ class ReactionHelper {
   }
 
   static ReactionInfo? parseReactionMC1(String text) {
+    // See https://github.com/Avi0n/MeshCoreOne/blob/main/docs/Reactions.md
+    // This regex matches both the channel format, which includes the sender name,
+    // and the chat (DM) format, which omits it.
+    final regex = RegExp(r'^(?:@\[(.*)])?(.+?)\n([a-tv-zA-TV-Z0-9]{8})$');
+    final match = regex.firstMatch(text);
+    if (match == null) return null;
+
+    final senderName = match.group(1);
+    final emoji = match.group(2)!;
+    final hash = match.group(3)?.toLowerCase();
+    if (!_looksLikeEmoji(emoji)) return null;
+
+    return ReactionInfo(
+      targetHash: _concatenateHashAndSender(hash!, senderName),
+      emoji: emoji,
+      hashType: HashType.mc1,
+    );
+  }
+
+  static ReactionInfo? parseReactionMC1Legacy(String text) {
     // See https://github.com/Avi0n/MeshCoreOne/blob/main/docs/Reactions.md
     // This regex matches both the channel format, which includes the sender name,
     // and the chat (DM) format, which omits it.
