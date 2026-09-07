@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:convert';
+import 'package:characters/characters.dart';
 import 'package:crypto/crypto.dart';
 import 'package:base32/base32.dart';
 import 'package:base32/encodings.dart';
@@ -21,7 +22,7 @@ class ReactionInfo {
   });
 
   String identifier() {
-    return '$targetHash:$emoji:${senderName ?? ""}';
+    return '$targetHash:$emoji:$hashType:${senderName ?? ""}';
   }
 }
 
@@ -130,7 +131,6 @@ class ReactionHelper {
     String? senderName,
     String messageText,
   ) {
-    // TODO: unit tests
     // raw hash is first 5 bytes of SHA-256(UTF-8 text + uint32-LE sender timestamp)
     Uint8List messageBytes = utf8.encode(messageText);
     ByteData timestampBytes = ByteData(4)
@@ -144,6 +144,11 @@ class ReactionHelper {
     return base32
         .encode(Uint8List.fromList(hash), encoding: Encoding.crockford)
         .toLowerCase();
+    // Note: Crockford32 defines permissive decoding and allows some
+    // substitutions (e.g. I, i, l -> 1) but we never decode the hashes, we
+    // just compare them. If someone sends a miscoded hash that should be
+    // equivalent, we won't match it and it won't work. But it's not worth
+    // accommodating, because no one is going to be hand copying hashes.
   }
 
   // MeshCoreOne-style reaction hashes don't depend on the sender name,
@@ -159,19 +164,43 @@ class ReactionHelper {
     return parseReactionOurs(text) ?? parseReactionMC1(text);
   }
 
+  static bool _looksLikeEmoji(String emoji) {
+    // Make sure it's a single grapheme.
+    if (Characters(emoji).length > 1) return false;
+
+    // Below are some emoji-validating tests, copied from MeshTrax.
+    // https://github.com/venamartin/meshtrax/
+    // It's nice to avoid false positives just to save us some processing,
+    // but it's not crucial, as we will either apply a reaction or show it
+    // as a message. Text that is not actually a hash is unlikely to match
+    // a message.
+    if (emoji.isEmpty) return false;
+    // Emoji, not prose: nearly all emoji start at U+2000 or above; the
+    // exceptions (keycaps, ©/®) carry a variation selector U+FE0F or a
+    // combining keycap U+20E3. Ordinary ASCII text fails both tests.
+    if (!(emoji.runes.first >= 0x2000 ||
+        emoji.runes.any((r) => r == 0xFE0F || r == 0x20E3))) {
+      return false;
+    }
+    return true;
+  }
+
   static ReactionInfo? parseReactionMC1(String text) {
     // See https://github.com/Avi0n/MeshCoreOne/blob/main/docs/Reactions.md
     // This regex matches both the channel format, which includes the sender name,
     // and the chat (DM) format, which omits it.
-    final regex = RegExp(r'^(.{1,4})(?:@\[(.*)])?\n([a-zA-Z0-9]{8})$');
+    final regex = RegExp(r'^(.+?)(?:@\[(.*)])?\n([a-tv-zA-TV-Z0-9]{8})$');
     final match = regex.firstMatch(text);
     if (match == null) return null;
 
     final hash = match.group(3)?.toLowerCase();
     final senderName = match.group(2);
+    final emoji = match.group(1)!;
+    if (!_looksLikeEmoji(emoji)) return null;
+
     return ReactionInfo(
       targetHash: _concatenateHashAndSender(hash!, senderName),
-      emoji: match.group(1)!,
+      emoji: emoji,
       hashType: HashType.mc1,
     );
   }

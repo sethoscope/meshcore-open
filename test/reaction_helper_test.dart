@@ -1,3 +1,4 @@
+import 'package:characters/characters.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meshcore_open/helpers/reaction_helper.dart';
 import 'package:meshcore_open/widgets/emoji_picker.dart';
@@ -341,15 +342,30 @@ void main() {
     });
 
     group('MeshCoreOne Reactions', () {
-      test('regex for matching emoji char', () {
+      test('emoji validation sanity checks', () {
         // This is more a test of expectations than of app code, but it was
         // a good place to get this sorted out cleanly, and I leave it for
-        // anyone interested in understanding the regex in the parsing.
+        // anyone interested in understanding the emoji validation and tests.
+        expect('🥳'.length, equals(2));
+        expect('\u{1f44c}\u{1f3ff}'.length, equals(4));
+        final oneChar = RegExp(r'^(.)$');
+        final twoChar = RegExp(r'^(..)$');
+        expect(oneChar.firstMatch('🥳'), isNull);
+        expect(oneChar.firstMatch('\u{1F642}'), isNull);
+        expect(oneChar.firstMatch('\u{1f44c}\u{1f3ff}'), isNull);
+        expect(twoChar.firstMatch('\u{1f44c}\u{1f3ff}'), isNull);
+
         final regex = RegExp(r'^(.{1,4})$');
         expect(regex.firstMatch('🥳'), isNotNull);
         expect(regex.firstMatch('😀'), isNotNull);
         expect(regex.firstMatch('\u{1F642}'), isNotNull);
         expect(regex.firstMatch('\u{1f44c}\u{1f3ff}'), isNotNull);
+
+        expect(Characters('🥳').length, equals(1));
+        expect(Characters('\u{1F642}').length, equals(1));
+        expect(Characters('\u{1F642}').length, equals(1));
+        expect(Characters('\u{1f44c}\u{1f3ff}').length, equals(1));
+        expect(Characters('🧑‍🧑‍🧒‍🧒').length, equals(1));
       });
 
       test('parse MeshCoreOne reaction', () {
@@ -362,6 +378,34 @@ void main() {
         expect(info, isNotNull);
         expect(info!.targetHash, equals('$hash:$senderName'));
         expect(info.emoji, equals(emoji));
+
+        List<String> messages = [
+          '🥳\n01234567',
+          '🥳@[entropy]\n01234567',
+          '\u{1f44c}\u{1f3ff}\n01234567',
+          '\u{1f44c}\u{1f3ff}@[entropy]\n01234567',
+          '🧑‍🧑‍🧒@[entropy]\n01234567', // long composite emoji - 21 bytes
+          '🧑‍🧑‍🧒‍🧒\n01234567', // long composite emoji - 25 bytes
+        ];
+        for (String txt in messages) {
+          final info = ReactionHelper.parseReactionMC1(txt);
+          expect(info, isNotNull, reason: "$txt did not parse");
+        }
+      });
+
+      test('parse MeshCoreOne reaction - avoid false positives', () {
+        List<String> messages = [
+          'test\nabcdefgh',
+          '🥳\nhashistoolong',
+          '🥳\nshort',
+          '🥳🥳\n01234567', // two emojis not composed into one grapheme
+          'X\n01234567',
+          '🥳\nabcuuxyz', // u is not valid as we don't support checksums
+        ];
+        for (String txt in messages) {
+          final info = ReactionHelper.parseReactionMC1(txt);
+          expect(info, isNull, reason: "$txt should not have parsed");
+        }
       });
 
       test('parse MeshCoreOne reaction - main entry', () {
@@ -385,7 +429,7 @@ void main() {
         expect(info.emoji, equals(emoji));
       });
 
-      test('compute MeshCoreOne reaction hash', () {
+      test('computeq MeshCoreOne reaction hash', () {
         const timestamp = 1234567890;
         const senderName = 'Alice';
         const messageText = 'Hello world!';
