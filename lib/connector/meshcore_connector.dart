@@ -3907,11 +3907,11 @@ class MeshCoreConnector extends ChangeNotifier {
   }
 
   // Sends [data] and resolves once the device replies to this command.
-  // SET_FLOOD_SCOPE and CMD_SEND_CHANNEL_DATA reply with RESP_CODE_OK; a
-  // channel text send may reply with RESP_CODE_SENT or RESP_CODE_OK. Replies
-  // are attributed through the generic-ack queue (see [_handleOk],
-  // [_handleErrorFrame] and [_handleMessageSent]) so an OK/SENT/ERR produced
-  // by another in-flight command (e.g. a concurrent DM) cannot complete it.
+  // SET_FLOOD_SCOPE, CMD_SEND_CHANNEL_DATA and CMD_SEND_CHANNEL_TXT_MSG all
+  // reply with RESP_CODE_OK or an ERR (the firmware never sends RESP_CODE_SENT
+  // for channel sends). Replies are attributed through the generic-ack queue
+  // (see [_handleOk] and [_handleErrorFrame]) so an OK/ERR produced by another
+  // in-flight command cannot complete it.
   // Waiting for the text send's reply before the scope is reset guarantees
   // the firmware has already built the packet with the active scope.
   Future<void> _sendFrameAndWaitForCommandAck(
