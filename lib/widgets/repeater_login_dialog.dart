@@ -13,6 +13,7 @@ import '../connector/meshcore_protocol.dart';
 import '../theme/mesh_theme.dart';
 import '../widgets/mesh_ui.dart';
 import '../utils/app_logger.dart';
+import '../helpers/utf8_length_limiter.dart';
 import 'routing_sheet.dart';
 
 class RepeaterLoginDialog extends StatefulWidget {
@@ -351,6 +352,10 @@ class _RepeaterLoginDialogState extends State<RepeaterLoginDialog> {
                   TextField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
+                    // Firmware stores at most 15 bytes (CommonCLI.h password[16]).
+                    inputFormatters: const [
+                      Utf8LengthLimitingTextInputFormatter(15),
+                    ],
                     decoration: InputDecoration(
                       labelText: l10n.login_password,
                       hintText: l10n.login_enterPassword,
