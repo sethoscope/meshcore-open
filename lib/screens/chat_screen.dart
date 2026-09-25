@@ -557,6 +557,11 @@ class _ChatScreenState extends State<ChatScreen> {
                     }
                     return ByteCountedTextField(
                       maxBytes: maxBytes,
+                      softLimitBytes:
+                          maxTextPayloadBytesAfterFullLengthAttempts,
+                      softLimitNote: context.l10n.chat_longMessageRetryNote(
+                        maxFullLengthTextAttempt + 1,
+                      ),
                       controller: _textController,
                       focusNode: _textFieldFocusNode,
                       hintText: context.l10n.chat_typeMessage,
@@ -827,7 +832,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final hopCount = _displayHopCount(
       contact.path,
       contact.pathLength,
-      connector.pathHashByteWidth,
+      contact.pathHashWidth,
     );
     return context.l10n.chat_hopsCount(hopCount);
   }
@@ -1170,8 +1175,8 @@ class _ChatScreenState extends State<ChatScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             BottomSheetHeader(
-              title: message.text.length > 40
-                  ? '${message.text.substring(0, 40)}…'
+              title: message.text.characters.length > 40
+                  ? '${message.text.characters.take(40)}…'
                   : message.text,
             ),
             // Can't react to your own messages

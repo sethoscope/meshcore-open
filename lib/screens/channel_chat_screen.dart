@@ -2112,8 +2112,8 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             BottomSheetHeader(
-              title: message.text.length > 40
-                  ? '${message.text.substring(0, 40)}…'
+              title: message.text.characters.length > 40
+                  ? '${message.text.characters.take(40)}…'
                   : message.text,
               subtitle: message.senderName.isNotEmpty
                   ? message.senderName
@@ -2253,6 +2253,13 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
       context.read<MeshCoreConnector>().clearMessagesForChannel(
         widget.channel.index,
       );
+      try {
+        await context.read<ReceivedImageStore>().deleteImagesForChannel(
+          widget.channel.index,
+        );
+      } on ProviderNotFoundException {
+        return;
+      }
     }
   }
 

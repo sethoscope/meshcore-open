@@ -111,10 +111,11 @@ class AppLocalizationsSv extends AppLocalizations {
   String get messageStatus_repeated => 'Hördes upprepade gånger';
 
   @override
-  String get urlImage_enable => 'Enable URL images';
+  String get urlImage_enable => 'Aktivera URL-bilder';
 
   @override
-  String get urlImage_possible => 'Possible URL image; enable it in Settings.';
+  String get urlImage_possible =>
+      'Möjlig URL-bild; aktivera den i Inställningar.';
 
   @override
   String get common_reboot => 'Starta om';
@@ -372,6 +373,10 @@ class AppLocalizationsSv extends AppLocalizations {
       'Radioinställningarna har uppdaterats';
 
   @override
+  String get settings_radioSettingsNotApplied =>
+      'Radion tillämpade inte dessa inställningar';
+
+  @override
   String get settings_regionSettings => 'Regioner';
 
   @override
@@ -614,7 +619,7 @@ class AppLocalizationsSv extends AppLocalizations {
   String get settings_infoPublicKey => 'Publik nyckel';
 
   @override
-  String get settings_publicKeyCopied => 'Public key copied';
+  String get settings_publicKeyCopied => 'Publik nyckel kopierad';
 
   @override
   String get settings_infoContactsCount => 'Antal kontakter';
@@ -1350,6 +1355,9 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get channels_publicChannelAdded => 'Publik kanal har lagts till';
+
+  @override
+  String get channels_noFreeSlots => 'Alla kanalplatser är upptagna';
 
   @override
   String get channels_sortBy => 'Sortera efter';
@@ -3142,6 +3150,75 @@ class AppLocalizationsSv extends AppLocalizations {
   @override
   String get repeater_commandsListNote =>
       'OBS: för de olika \"set ...\" -kommandon finns det även ett \"get ...\" -kommando.';
+
+  @override
+  String get repeater_frequencyRangeHelper => '150-2500 MHz';
+
+  @override
+  String get repeater_frequencyInvalid => 'Ogiltig frekvens (150-2500 MHz)';
+
+  @override
+  String get repeater_txPowerRangeHelper => '-9 till 30 dBm';
+
+  @override
+  String get repeater_recvErrors => 'Mottagningsfel';
+
+  @override
+  String get room_postsStored => 'Inlägg';
+
+  @override
+  String get room_postsPushed => 'Skickade inlägg';
+
+  @override
+  String get repeater_cliRegionLoadActive =>
+      'Regionladdningsläge: skicka ett regionnamn per rad, indraget med blanksteg under sin förälder (lägg till F efter namnet för att tillåta flood). Rader får inget svar. Skicka en tom rad för att avsluta, och sedan \"region save\" för att spara resultatet.';
+
+  @override
+  String get repeater_cliRegionLoadHint =>
+      'Regionrad, eller tom för att avsluta';
+
+  @override
+  String get repeater_cliRegionLoadEnd => '(slut på regionladdning)';
+
+  @override
+  String get repeater_cliHelpRegionDef =>
+      'Definierar en kedja av regioner i ett kommando: varje namn läggs till under det föregående; \"name,parent\" lägger till namnet och fortsätter sedan under den angivna föräldern. Svarar med regionlistan.';
+
+  @override
+  String get repeater_cliHelpSetFloodMaxUnscoped =>
+      'Anger det maximala antalet hopp för vidarebefordran av flood-paket utan regionscope (0-64).';
+
+  @override
+  String get repeater_cliHelpSetFloodMaxAdvert =>
+      'Anger det maximala antalet hopp för vidarebefordran av flood-annonser (0-64).';
+
+  @override
+  String get repeater_cliHelpGetFloodMaxUnscoped =>
+      'Visar det maximala antalet hopp för flood-paket utan regionscope.';
+
+  @override
+  String get repeater_cliHelpGetFloodMaxAdvert =>
+      'Visar det maximala antalet hopp för flood-annonser.';
+
+  @override
+  String get repeater_cliHelpSetRadioFemRxGain =>
+      'Växlar LoRa-frontändmodulens RX-gain (LNA). Kort utan denna modul svarar \"Error: unsupported\".';
+
+  @override
+  String get repeater_cliHelpSetRadioFemTxGain =>
+      'Växlar LoRa-frontändmodulens TX-gain (PA). Kort utan denna modul svarar \"Error: unsupported\".';
+
+  @override
+  String get repeater_cliHelpGetRadioFemRxGain =>
+      'Visar om LoRa-frontändmodulens RX-gain är påslagen.';
+
+  @override
+  String get repeater_cliHelpGetRadioFemTxGain =>
+      'Visar om LoRa-frontändmodulens TX-gain är påslagen.';
+
+  @override
+  String get repeater_bridgeNote =>
+      'Endast tillgängligt på firmware byggd med en brygga (RS232 eller ESP-NOW).';
 
   @override
   String get repeater_general => 'Allmänt';
@@ -5016,5 +5093,10 @@ class AppLocalizationsSv extends AppLocalizations {
   @override
   String imageSend_minutesSecondsValue(String minutes, String seconds) {
     return '$minutes min $seconds s';
+  }
+
+  @override
+  String chat_longMessageRetryNote(int count) {
+    return 'Över 158 byte: skickas högst $count gånger';
   }
 }
